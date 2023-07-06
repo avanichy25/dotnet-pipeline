@@ -15,11 +15,11 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: UseDotNet@2
+- task: DotNetCoreCLI@2
   inputs:
-    packageType: 'sdk'
-    version: '6.x'
-- task: NuGetToolInstaller@1
+    command: 'restore'
+    projects: '**/*.csproj'
+  displayName: 'Restore Nuget Packages'
 
 - task: NuGetCommand@2
   inputs:

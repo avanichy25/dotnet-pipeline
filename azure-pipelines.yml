@@ -4,14 +4,12 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-- main
+- master
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
 steps:
@@ -21,28 +19,26 @@ steps:
     projects: '**/*.csproj'
   displayName: 'Restore Nuget Packages'
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
-
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
     projects: '**/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+    arguments: '--no-restore'
+  displayName: 'Build projects'
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
     projects: '**/*Test.csproj'
-    arguments: '--configuration $(buildConfiguration)'
-
-- task: WhiteSource@21
-  inputs:
-    cwd: '$(System.DefaultWorkingDirectory)'
+    arguments: '--no-restore'
+  displayName: 'Run Tests'
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
-    publishWebProjects: true
-    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    publishWebProjects: false
+    projects: '**/CustomerApi.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-restore'
+    modifyOutputPath: false    
+  displayName: 'Publish CustomerApi'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
